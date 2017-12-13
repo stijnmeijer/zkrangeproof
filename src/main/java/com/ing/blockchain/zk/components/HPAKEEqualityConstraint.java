@@ -17,8 +17,9 @@
  *
  */
 
-package com.ing.blockchain.zk;
+package com.ing.blockchain.zk.components;
 
+import com.ing.blockchain.zk.TTPGenerator;
 import com.ing.blockchain.zk.dto.ECProof;
 import com.ing.blockchain.zk.exception.ZeroKnowledgeException;
 import com.ing.blockchain.zk.util.DigestUtil;
@@ -38,14 +39,14 @@ import static java.math.BigInteger.ONE;
 public class HPAKEEqualityConstraint {
 
     // Security parameters
-    public static final int t = 128;  // Parameter for soundness (bitlength of hash divided by 2)
-    public static final int l = 40;   // Parameter for zero-knowledge property
+    public static final int t = CFT.t;  // Parameter for soundness (bitlength of hash divided by 2)
+    public static final int l = CFT.l;  // Parameter for zero-knowledge property
     public static final int s1 = TTPGenerator.s; // s from commitment 1
     public static final int s2 = TTPGenerator.s; // s from commitment 2
     public static final BigInteger TWO = BigInteger.valueOf(2);
-    public static final BigInteger b = TWO.pow(256); // max uint in Ethereum
 
     public static ECProof calculateZeroKnowledgeProof(
+            BigInteger b,   // maximum committed value to be hidden
             BigInteger N,   // large composite number whose factorization is unknown by Alice and Bob
             BigInteger g1,  // element of large order in Zn*
             BigInteger g2,  //  |

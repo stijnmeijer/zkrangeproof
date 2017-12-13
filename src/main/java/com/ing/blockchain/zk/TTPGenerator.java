@@ -19,10 +19,11 @@
 
 package com.ing.blockchain.zk;
 
+import com.ing.blockchain.zk.components.SecretOrderGroupGenerator;
 import com.ing.blockchain.zk.dto.Commitment;
 import com.ing.blockchain.zk.dto.SecretOrderGroup;
 import com.ing.blockchain.zk.dto.TTPMessage;
-import org.bouncycastle.util.BigIntegers;
+import com.ing.blockchain.zk.util.BigIntUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,10 +75,9 @@ public class TTPGenerator {
         return new Commitment(group, commitment);
     }
 
-    // Generate a random value between - 2(power s) * N + 1 and 2(power s) * N - 1.
+    // Generate a random value between - 2^s * N + 1 and 2^s * N - 1.
     // This range is used for generating commitment keys.
     public static BigInteger generateKey(BigInteger N, SecureRandom random) {
-        BigInteger integerMax = TWO.pow(s).multiply(N).subtract(ONE);
-        return BigIntegers.createRandomInRange(integerMax.negate(), integerMax, random);
+        return BigIntUtil.randomSignedInt(TWO.pow(s).multiply(N).subtract(ONE), random);
     }
 }

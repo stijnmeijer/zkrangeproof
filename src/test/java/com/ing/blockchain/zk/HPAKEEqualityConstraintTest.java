@@ -19,6 +19,7 @@
 
 package com.ing.blockchain.zk;
 
+import com.ing.blockchain.zk.components.HPAKEEqualityConstraint;
 import com.ing.blockchain.zk.dto.ECProof;
 import com.ing.blockchain.zk.dto.SecretOrderGroup;
 import org.junit.Test;
@@ -51,7 +52,7 @@ public class HPAKEEqualityConstraintTest {
         BigInteger E = TTPGenerator.commit(group, x, y[0]).getCommitmentValue();
         BigInteger F = TTPGenerator.commit(group2, x, y[1]).getCommitmentValue();
 
-        ECProof proof = HPAKEEqualityConstraint.calculateZeroKnowledgeProof(p, g[0], g[1], h[0], h[1], x, y[0], y[1], random);
+        ECProof proof = HPAKEEqualityConstraint.calculateZeroKnowledgeProof(x, p, g[0], g[1], h[0], h[1], x, y[0], y[1], random);
 
         HPAKEEqualityConstraint.validateZeroKnowledgeProof(p, g[0], g[1], h[0], h[1], E, F, proof);
     }

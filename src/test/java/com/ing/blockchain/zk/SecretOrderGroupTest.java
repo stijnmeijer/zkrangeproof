@@ -19,10 +19,9 @@
 
 package com.ing.blockchain.zk;
 
+import com.ing.blockchain.zk.components.SecretOrderGroupGenerator;
 import com.ing.blockchain.zk.dto.SecretOrderGroup;
 import org.junit.Test;
-
-import java.math.BigInteger;
 
 import static org.bouncycastle.pqc.math.linearalgebra.IntegerFunctions.isPrime;
 import static org.junit.Assert.assertEquals;

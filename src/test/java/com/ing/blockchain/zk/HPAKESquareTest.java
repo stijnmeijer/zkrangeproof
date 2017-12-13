@@ -19,6 +19,7 @@
 
 package com.ing.blockchain.zk;
 
+import com.ing.blockchain.zk.components.HPAKESquare;
 import com.ing.blockchain.zk.dto.SecretOrderGroup;
 import com.ing.blockchain.zk.dto.SquareProof;
 import org.junit.Test;
@@ -41,7 +42,7 @@ public class HPAKESquareTest {
         BigInteger commitment = TTPGenerator.commit(group, xSquare, y).getCommitmentValue();
 
         SecureRandom random = new SecureRandom();
-        SquareProof proof = HPAKESquare.calculateZeroKnowledgeProof(N, g, h, x, y, random);
+        SquareProof proof = HPAKESquare.calculateZeroKnowledgeProof(x, N, g, h, x, y, random);
         HPAKESquare.validateZeroKnowledgeProof(N, g, h, commitment, proof);
     }
 }

@@ -17,7 +17,7 @@
  *
  */
 
-package com.ing.blockchain.zk;
+package com.ing.blockchain.zk.components;
 
 import com.ing.blockchain.zk.dto.SecretOrderGroup;
 import org.bouncycastle.util.BigIntegers;
@@ -40,7 +40,7 @@ public class SecretOrderGroupGenerator {
     private static SecureRandom rnd = new SecureRandom();
 
     public SecretOrderGroupGenerator() {
-        this(1024);
+        this(512);
     }
 
     public SecretOrderGroupGenerator(int bitlength) {
