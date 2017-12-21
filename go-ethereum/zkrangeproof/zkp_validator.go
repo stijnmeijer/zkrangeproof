@@ -23,102 +23,88 @@ import (
   "github.com/ethereum/go-ethereum/byteconversion"
 )
 
-var k1 = new(big.Int).SetBit(big.NewInt(0), 160, 1) // 2^160, security parameter that should match prover
+// Security parameters
+var t = 128
+var l = 40
 
 func ValidateRangeProof(lowerLimit *big.Int,
 						upperLimit *big.Int,
 						commitment[] *big.Int,
 						proof [] *big.Int) bool {
 
-	if len(commitment) < 4 || len(proof) < 22 {
+	if len(commitment) < 4 || len(proof) < 18 {
+        fmt.Println("ZKRP validation failed, invalid length for commitment or proof")
 		return false
 	}
 
-	c := commitment[0] // firstC
-	N := commitment[1] // modulo
-	g := commitment[2] // generator
-	h := commitment[3] // cyclic group generator
+	T := 2 * (t + l + 1) + Sub(upperLimit, lowerLimit).BitLen()
+	lowerLimitPrime := ShiftLeft(lowerLimit, T)
+	upperLimitPrime := ShiftLeft(upperLimit, T)
+	commitmentPrime := commitment[:]
+	commitmentPrime[0] = ModPow(commitment[0], ShiftLeft(new(big.Int).SetInt64(1), T), commitment[1])
 
-	if (N.Cmp(big.NewInt(0)) <= 0) {
-		fmt.Println("Invalid group")
-		return false
-	}
-
-	equalityProof2 := proof[14:18]
-	squareProof3 := proof[4:9]
-	squareProof4 := proof[9:14]
-
-	cPrime := proof[0]
-	cPrime1 := proof[1]
-	cPrime2 := proof[2]
-	cPrime3 := proof[3]
-
-	u := proof[18]
-	v := proof[19]
-	x := proof[20]
-	y := proof[21]
-
-	// Derived information
-	tmp := ModPow(g, Sub(lowerLimit, big.NewInt(1)), N)
-	c1 := Mod(Multiply(ModInverse(tmp, N), c), N)
-	c2 := Mod(Multiply(ModPow(g, Add(upperLimit, big.NewInt(1)), N), ModInverse(c, N)), N)
-
-	cPrimePrime := Mod(Multiply(Multiply(cPrime1, cPrime2), cPrime3), N)
-
- 	if (!HPAKEEqualityConstraintValidateZeroKnowledgeProof (N, g, c1,
-             												h, h, c2, cPrime, equalityProof2)) {
- 		fmt.Println("HPAKEEqualityConstraint failure")
- 		return false;
- 	}
-
-  hashC1, errC1 := CalculateHash(c1, nil)
-  hashC2, errC2 := CalculateHash(c2, nil)
-  if errC1 != nil || errC2 != nil {
-    fmt.Println("Failure: empty ByteArray in CalculateHash [c1 or c2]")
-    return false
-  }
-	s := Add(Mod(hashC1, k1), big.NewInt(1))
-	t := Add(Mod(hashC2, k1), big.NewInt(1))
-
-	if (!HPAKESquareValidateZeroKnowledgeProof (N, cPrime, h, cPrimePrime, squareProof3)) {
-		fmt.Println("HPAKESquare failure at first square")
-		return false
-	}
-
-	if (!HPAKESquareValidateZeroKnowledgeProof (N, g, h, cPrime3, squareProof4)) {
-		fmt.Println("HPAKESquare failure at second square")
-		return false
-	}
-
- 	nineLeft := Mod(Multiply(Multiply(ModPow(cPrime1, s, N), cPrime2), cPrime3), N)
- 	nineRight := Mod(Multiply(ModPow(g, x, N), ModPow(h, u, N)), N)
-
-    if nineLeft.Cmp(nineRight) != 0 {
-    	fmt.Println("Failure: nineLeft != nineRight")
-    	return false
-    }
-
-    tenLeft := Mod(Multiply(Multiply(cPrime1, ModPow(cPrime2, t, N)), cPrime3), N)
-    tenRight := Mod(Multiply(ModPow(g, y, N), ModPow(h, v, N)), N)
-
-    if tenLeft.Cmp(tenRight) != 0 {
-    	fmt.Println("Failure: tenLeft != tenRight")
-	   	return false
-    }
-
-	if x.Cmp(big.NewInt(0)) <=0 {
-		fmt.Println("Failure: x <= 0")
-		return false
-	}
-
-	if y.Cmp(big.NewInt(0)) <=0 {
-		fmt.Println("Failure: y <= 0")
-		return false
-	}
-
-	return true;
+    return ValidateProofWithTolerance(lowerLimitPrime, upperLimitPrime, commitmentPrime, proof)
 }
 
+func ValidateProofWithTolerance(lowerLimit *big.Int,
+                                upperLimit *big.Int,
+                                commitment[] *big.Int,
+                                proof [] *big.Int) bool {
+
+	if len(commitment) < 4 || len(proof) < 18 {
+        fmt.Println("ZKRP validation failed, invalid length for commitment or proof")
+		return false
+	}
+
+    c := commitment[0]
+    N := commitment[1]
+    g := commitment[2]
+    h := commitment[3]
+
+    if (N.Cmp(big.NewInt(0)) <= 0) {
+        fmt.Println("Invalid group")
+        return false
+    }
+
+    cLeftSquare := proof[0]
+    cRightSquare := proof[1]
+    squareProofLeft := proof[2:7]
+    squareProofRight := proof[7:12]
+    cftProofLeft := proof[12:15]
+    cftProofRight := proof[15:18]
+
+    // Step 2
+    cLeft := DivMod(c, ModPow(g, lowerLimit, N), N)
+    cRight := DivMod(ModPow(g, upperLimit, N), c, N)
+
+    // Step 6
+    cLeftRemaining := DivMod(cLeft, cLeftSquare, N)
+    cRightRemaining := DivMod(cRight, cRightSquare, N)
+
+    // Step 7
+    if (!HPAKESquareValidateZeroKnowledgeProof (N, g, h, cLeftSquare, squareProofLeft)) {
+        fmt.Println("ZKRP validation failed at left square proof")
+        return false
+    }
+    if (!HPAKESquareValidateZeroKnowledgeProof (N, g, h, cRightSquare, squareProofRight)) {
+        fmt.Println("ZKRP validation failed at right square proof")
+        return false
+    }
+
+    // Step 8
+    CFT_maxCommitment := FloorSquareRoot(ShiftLeft(Sub(upperLimit, lowerLimit), 2));
+    if (!CFTValidateZeroKnowledgeProof (CFT_maxCommitment, N, g, h, cLeftRemaining, cftProofLeft)) {
+        fmt.Println("ZKRP validation failed at left CFT proof")
+        return false
+    }
+    if (!CFTValidateZeroKnowledgeProof (CFT_maxCommitment, N, g, h, cRightRemaining, cftProofRight)) {
+        fmt.Println("ZKRP validation failed at right CFT proof")
+        return false
+    }
+
+    fmt.Println("ZKRP validation succeeded")
+    return true
+}
 
 func HPAKESquareValidateZeroKnowledgeProof (
              N *big.Int,
@@ -157,9 +143,35 @@ func HPAKEEqualityConstraintValidateZeroKnowledgeProof (
     fmt.Println("Failure: empty ByteArray in CalculateHash [W1, W2]")
     return false
   }
+
 	return C.Cmp(hashW) == 0
 }
 
+func CFTValidateZeroKnowledgeProof(
+            b *big.Int,
+            N *big.Int,
+            g *big.Int,
+            h *big.Int,
+            E *big.Int,
+            cftProof[] *big.Int) bool {
+
+	C := cftProof[0]
+	c := Mod(C, new(big.Int).SetBit(big.NewInt(0), t, 1))
+	D1 := cftProof[1]
+	D2 := cftProof[2]
+
+	W := Mod(Multiply(Multiply(ModPow(g, D1, N), ModPow(h, D2, N)), ModPow(E, Multiply(c, new(big.Int).SetInt64(-1)), N)), N)
+
+  hashW, errW := CalculateHash(W, nil)
+  if errW != nil {
+    fmt.Println("Failure: empty ByteArray in CalculateHash [W]")
+    return false
+  }
+
+   	return C.Cmp(hashW) == 0 &&
+   	    D1.Cmp(Multiply(b, c)) >= 0 &&
+   	    D1.Cmp(Multiply(b, new(big.Int).SetBit(big.NewInt(0), t + l, 1))) <= 0
+}
 
 func CalculateHash(b1 *big.Int, b2 *big.Int) (*big.Int, error) {
 
@@ -175,7 +187,7 @@ func CalculateHash(b1 *big.Int, b2 *big.Int) (*big.Int, error) {
 
 /**
  * Returns base**exponent mod |modulo| also works for negative exponent (contrary to big.Int.Exp)
- */
+ */						
 func ModPow(base *big.Int, exponent *big.Int, modulo *big.Int) *big.Int {
 
 	var returnValue *big.Int
@@ -198,6 +210,10 @@ func Sub(x *big.Int, y *big.Int) * big.Int {
 	return new(big.Int).Sub(x, y)
 }
 
+func Div(x *big.Int, y *big.Int) * big.Int {
+	return new(big.Int).Div(x, y)
+}
+
 func Mod(base *big.Int, modulo *big.Int) * big.Int {
 	return new(big.Int).Mod(base, modulo)
 }
@@ -208,4 +224,35 @@ func Multiply(factor1 *big.Int, factor2 *big.Int) *big.Int {
 
 func ModInverse(base *big.Int, modulo *big.Int) *big.Int {
 	return new(big.Int).ModInverse(base, modulo)
+}
+
+func DivMod(a *big.Int, b *big.Int, N *big.Int) *big.Int {
+    return Mod(Multiply(a, ModInverse(b, N)), N)
+}
+
+func ShiftLeft(a *big.Int, b int) *big.Int {
+    return Multiply(a, new (big.Int).SetBit(big.NewInt(0), b, 1))
+}
+
+func FloorSquareRoot(input *big.Int) *big.Int {
+    if (input.Cmp(big.NewInt(0)) < 0) {
+        return big.NewInt(0)
+    }
+
+    prev2 := big.NewInt(0)
+    prev := big.NewInt(0)
+    approx := new (big.Int).SetBit(big.NewInt(0), input.BitLen() / 2, 1)
+
+    // To improve approximation of a = sqrt(i), set it to (i / a + a) / 2
+    // Stop when approx does not change or starts alternating
+    for (approx.Cmp(prev) != 0 && approx.Cmp(prev2) != 0) {
+        prev2 = prev
+        prev = approx
+        approx = Div(Add(Div(input, approx), approx), big.NewInt(2))
+    }
+
+    if Multiply(approx, approx).Cmp(input) >= 1 {
+        approx = Sub(approx, big.NewInt(1))
+    }
+    return approx;
 }
