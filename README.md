@@ -1,6 +1,6 @@
 ## Zero Knowledge Range Proof with uPort demo
 
-An uPort demo application based on ING's zero-knowledge range proof precompiled contract for the go-ethereum client.
+An uPort demo application based on ING's zero-knowledge range proof precompiled contract for the go-ethereum client. The uPort dapps are based on uPort's demo dapp.
 
 ## Important note:
 
@@ -19,6 +19,7 @@ The zero-knowledge range proof (ZKRP) precompiled contract, as developed by ING,
   * an *Intermediary* that reads the commitment and private variables, and generates a range proof for a specific year of birth range (i.e. 1900 - 1999) for the "over 18" example. This functionality could be embedded in a future version of the uPort app.
   * a *Relying party*, such as the vendor of the liquor store, that reads the range proof and checks it against a certain year of birth range, by calling ING's precompiled ZKRP contract. This age range should match with the age range for which the range proof was generated.
 
+This way, you only reveal the information that is absolutely necessary. As a result, you can be truly self-sovereign. 
 This demo demonstrates an age limit example, but other use cases could be for instance:
 
  * Validate that someone is in Europe without disclosing the exact location.
@@ -53,7 +54,7 @@ $ /go-ethereum/build/bin/geth --rpc
 
 #### Running the provided Java application
 
-Make sure that you have an IDE (plugin) that supports Gradle, or another dependency manager. Start a new Gradle project in your favourite IDE and load the source code form the `/src` folder. Build and run the project such that a Java HTTP server is started.
+Make sure that you have an IDE (plugin) that supports Gradle, or another dependency manager. Start your favourite IDE and open the source code form the `zkrangeproof` root folder (as a Gradle project). Build and run the project such that a Java HTTP server is started.
 
 ### Installing and starting the three uPort dapps
 
