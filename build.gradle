@@ -1,10 +1,16 @@
 apply plugin: 'java'
-//apply plugin: 'application'
+apply plugin: 'application'
 apply plugin: 'maven-publish'
+apply plugin: 'org.springframework.boot'
+
+mainClassName = 'com.ing.blockchain.demo.DemoServer'
 
 buildscript {
     repositories {
         mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.9.RELEASE")
     }
 }
 
@@ -21,14 +27,17 @@ repositories {
 dependencies {
     compile "org.bouncycastle:bcprov-jdk15on:1.55"
     compile "org.bouncycastle:bcprov-ext-jdk15on:1.55"
-    compile 'org.slf4j:slf4j-api:1.7.25'
+    //compile 'org.slf4j:slf4j-api:1.7.25'
 
     testCompile group: 'junit', name: 'junit', version: '4.11'
     testCompile 'org.hamcrest:hamcrest-all:1.3'
     compile 'org.apache.logging.log4j:log4j-api:2.8.2'
     compile 'org.apache.logging.log4j:log4j-core:2.8.2'
-    compile 'org.apache.logging.log4j:log4j-slf4j-impl:2.8.2'
+    //compile 'org.apache.logging.log4j:log4j-slf4j-impl:2.8.2'
     compile "org.web3j:core:2.3.1"
+    
+    compile("org.springframework.boot:spring-boot-starter-web")
+    testCompile('org.springframework.boot:spring-boot-starter-test')
 }
 
 publishing {
