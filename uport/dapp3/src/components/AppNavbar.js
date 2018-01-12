@@ -9,7 +9,7 @@ import * as AppActions from '../actions/AppActions'
 import styled from 'styled-components'
 
 const NavBar = styled.nav`
-  color: #FFFFFF;
+  color: #FFF;
   padding: 20px 40px;
   font-size: 18px;
   display: flex;
@@ -17,7 +17,7 @@ const NavBar = styled.nav`
   align-items: center;
 `
 const LogoLink = styled.a`
-  color: #333;
+  color: #FFF;
   text-decoration: none;
 `
 const DemoText = styled.span`
@@ -59,7 +59,7 @@ class AppNavbar extends Component {
       <NavBar>
 
         <LeftArea>
-          <LogoLink href='/'>ZKRP</LogoLink>
+          <LogoLink href='/'>ZKRP demo</LogoLink>
           <span> | </span>
           <DemoText>Relying party</DemoText>
         </LeftArea>

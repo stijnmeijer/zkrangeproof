@@ -56,7 +56,7 @@ public class ServerController {
      */
     @RequestMapping("/uport-demo/ttpmessage")
     public TTPPacket ttpPacket(@RequestParam(value="X") String X) {
-        System.out.println("Going to generate and send TTPmessage with secret: " + X);
+        System.out.println("Going to generate and send TTPmessage with secret: " + X + ". This can take up to a minute...");
         return new TTPPacket(X);
     }
     

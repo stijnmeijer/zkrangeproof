@@ -59,6 +59,7 @@ public final class TTPPacket {
      * @return the TTPMessage, containing a commitment and private variables
      */
     public String getTTPPacket() {
+        System.out.println("TTP Message generated, now sending. Make sure your browser's Same Origin Policy is disabled.");
         return ttpMessage;
     }
 
